@@ -32,10 +32,16 @@ print(30*"-")
 
 plt.plot(x, y, "b*")
 plt.title("Randomly distributed points around this function")
+
 # Define our hypothesis theta0 + theta1*x
 # We want to learn to two theta values
 def linear_hypothesis(theta0, theta1):
-    return lambda x: theta0 + theta1*x
+    def costFunc(x):
+        print("Got x: ")
+        print(x)
+        return theta0 + theta1*x
+    return costFunc
+
 
 # def cost_function(x, y):
 #     m = len(x)
