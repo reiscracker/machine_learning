@@ -3,102 +3,99 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import ipdb
+
+def printDebug(debugDict, caller=None):
+    print("Debug: " + 30*"-")
+    if caller: print(caller)
+    print("Got debugDict: " + str(len(debugDict)))
+    for name, element in debugDict.iteritems():
+        print("%s of %s and shape %s: \n %s" % (name, type(element), str(element.shape) if hasattr(element, "shape") else "None", str(element)) )
+
+def scatterPlot( xMatrix, y ):
+#     n = len(xMatrix[:,1])
+#     if ( len(xMatrix[:,2]) != len(y[:,1]) != n ):
+#         print("Invalid dimensions of operand!")
+#     if ( xMatrix.shape[0] != y.shape[0] ): 
+#         print("Invalid dimensions of operand!")
+    assert Matrix.shape[0] != y.shape[0] ): 
+        raise(("Invalid dimensions of operand!")
+    fig = plt.figure(figsize=(11, 8), dpi=160)
+    ax = fig.add_subplot(111, projection='3d', label="Zufaellige Datenmatrix mit kuenstlich erzeugenten Y-Werten")
+    ax.scatter(xMatrix[:, 1], xMatrix[:, 2], y, "b", s=60, marker="*")
+    ax.set_xlabel('Feature 1')
+    ax.set_ylabel('Feature 2')
+    ax.set_zlabel('Target')
+    plt.show()
 
 separator = 30*"-"+"\n"
 
 ### Aufgabe 1
-m = dataSets = 100
-n = features = 4
+dataSets = 100
+features = 2
 min_x = -10
 max_x = 10
 y_noise_intensity = 2
+iterations = 100
+alpha = 0.01
+original_thetas = thetas = np.array( [1.1, 2.0, -.9] )
+costs = {}
 
 # Create x values
-x = np.random.uniform(min_x, max_x, (dataSets, features))
+xMatrix = np.random.uniform(min_x, max_x, (dataSets, features))
 # Join the x0 column
-x0Column = np.ones(( m, 1))
-x = np.concatenate( (x0Column, x), axis=1)
+x0Column = np.ones(( dataSets, 1))
+xMatrix = np.concatenate( (x0Column, xMatrix), axis=1)
+printDebug( {"x matrix" : xMatrix}, "X values created" )
+
 
 ###  Aufgabe 2
 def vector_linear_hypothesis(thetaVector):
-    def costFunc(featureVector):
-        print(str(featureVector.shape))
-        print(str(thetaVector.shape)) 
-        print("Got featureVector of shape %s and have theta of shape %s " % (str(featureVector.shape), str(thetaVector.shape)))
-        result = np.dot(featureVector, thetaVector)
-        return result
+    def costFunc(xFeatureVector):
+        printDebug( {"Theta" : thetaVector, "Feature vector": xFeatureVector}, "In linear hypothesis" )
+        return np.dot(xFeatureVector, thetaVector)
     return costFunc
 
-original_thtas = thetas = np.array( [1.1, 2.0, -.9, 0.1, 1.0] )
 h = vector_linear_hypothesis(thetas)
-print("Thetas shape: %s , x shape: %s " % (thetas.shape, x.shape))
+printDebug( {"Exakte Thetas" : original_thetas} )
 
 ###  Aufgabe 3
 # Generate y values using the linear hypothesis function
-y = []
-for dataSet in x:
-    print("Calculating %s" % str(dataSet))
-    y.append(h(dataSet))
-# And store in a numpy array
-y = np.array(y)
-
-print("Y before noise: " + separator)
-print(y)
-
+y = np.array( [ h(featureVector) for featureVector in xMatrix ] )
+printDebug( {"Y before noise" : y })
 # Add some noise to it
-y_noise = np.random.randn(dataSets) * y_noise_intensity
-y += y_noise
-
-print("Y after noise: " + separator)
-print(y)
+y += np.random.randn(dataSets) * y_noise_intensity
+printDebug( {"Y noisy" : y })
 
 # Plot as a scatter plot
-print("Plotting:" + separator)
-print("x1: " + str(x[:, 1]))
-print("x2: " + str(x[:, 2]))
-print("y: " + str(y))
+scatterPlot(xMatrix, y)
 
-fig = plt.figure(figsize=(11, 8))
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(x[:, 1], x[:, 2], y, "b", s=60)
-ax.set_xlabel('Feature 1')
-ax.set_ylabel('Feature 1')
-ax.set_zlabel('Target')
-# plt.show()
-
-def cost_function(x, y):
-    print("Cost function got x vector with shape %s and y with shape %s" % ( str(x.shape), str(y.shape) ))
-    m = len(x)
+def cost_function(xMatrix, y):
+    m = len(xMatrix[:,1])
     def squared_error_cost(thetaVector):
-        loss = vector_linear_hypothesis(thetaVector)(x) - y
-        print("Loss (" + str(loss.shape) + ": " + str(loss))
+        loss = vector_linear_hypothesis(thetaVector)(xMatrix) - y
+        printDebug( {"x matrix": xMatrix, "y values" : y, "loss" : loss}, "In cost function" )
         return 1. / ( 2. * m ) * ( loss ** 2 ).sum()
     return squared_error_cost
 
-j = cost_function(x, y)
-print( j(thetas) )
+# j = cost_function(xMatrix, y)
 
 # Merke: theta.transpose() * xi == h_theta(x)
-def compute_new_theta(x, y, thetas, alpha):
-    m = len(x)
-    print("Old thetas shape: %s , x shape: %s" % (str(thetas.shape), str(x.shape)))
-    leSum = x.transpose().dot( vector_linear_hypothesis(thetas)(x) - y )
+def compute_new_theta(xMatrix, y, thetas, alpha):
+    m = len(xMatrix[:,1])
+    leSum = xMatrix.transpose().dot( vector_linear_hypothesis(thetas)(xMatrix) - y )
     thetas_neu = thetas - alpha * (1. / m) * leSum
-    print("New thetas (%s): %s" % (str(thetas.shape), str(thetas)))
+    printDebug( {"New theta" : thetas_neu}, "In compute new theta" )
     return thetas_neu
-    
 
-iterations = 1000
-alpha = 0.01
-costs = {}
 # Do 10.000 iterations
 for i in range(iterations):
-    thetas = compute_new_theta(x, y, thetas, alpha)
-    costs[i] = cost_function(x, y)(thetas)
+    thetas = compute_new_theta(xMatrix, y, thetas, alpha)
+    costs[i] = cost_function(xMatrix, y)(thetas)
 
 print(separator)
 print("I assume:")
 print("thetas: " + str(thetas))
-print("(Correct was " + str(original_thtas) )
+print("(Correct was " + str(original_thetas) )
 print(separator)
 
