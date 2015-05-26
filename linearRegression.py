@@ -1,4 +1,5 @@
-#!/usr/bin/python
+ x255_Grey93# .vim/colors/ | grep green
+/usr/bin/python
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -37,8 +38,8 @@ plt.title("Randomly distributed points around this function")
 # We want to learn to two theta values
 def linear_hypothesis(theta0, theta1):
     def costFunc(x):
-#         print("Got x: ")
-#         print(x)
+        print("Got x: ")
+        print(x)
         return theta0 + theta1*x
     return costFunc
 
@@ -133,7 +134,7 @@ plt.show()
 #
 #
 #
-#
+# theta_0, theta_1 = compute_new_theta(x, y, theta_0, theta_1, alpha)
 
 
 
